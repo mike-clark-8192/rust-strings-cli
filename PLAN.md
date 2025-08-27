@@ -20,7 +20,9 @@ rust-strings [options] [glob] [glob...]
 
 #### Command-line Options
 - `-a, --abs-path`: Report absolute paths (default: relative to CWD)
-- `-e, --encodings`: Comma-separated encodings (default: "ascii,utf8")
+- `-e, --encoding`: Encoding to consider, can be repeated (default: ascii, utf-8)
+  - Usage: `-e ascii -e utf-16le` or `--encoding ascii --encoding utf-8`
+  - Each use adds one encoding to the list
 - `-m, --min`: Minimum string length (default: 3)
 - `-M, --max`: Maximum string length (default: 256)
 - `-o, --output`: Output file path (UTF-8 encoded)
@@ -51,24 +53,25 @@ rust-strings [options] [glob] [glob...]
 **Purpose**: Interface with rust-strings library
 
 **Key Functions**:
-- `extract_strings(file_path: Path, encodings: List[str], min_length: int, max_length: int, buffer_size: int = 1048576) -> List[Tuple[str, int]]`
-  - Call `rust_strings.strings()` with appropriate parameters
-  - Handle multiple encodings
-  - Filter by length constraints
-  - Handle file reading errors gracefully
+- `extract_strings(file_path: Path, encodings: List[str], min_length: int, buffer_size: int = 1048576) -> List[Tuple[str, int]]`
+  - Call `rust_strings.strings()` with parameter `encoding` (note: singular)
+  - Pass encodings list directly to rust_strings
+  - Handle `StringsException` and `EncodingNotFoundException`
+  - Note: max_length filtering happens in filters.py (not supported by rust_strings)
 
-**Encoding Mapping**:
-- Map CLI encoding names to rust-strings encoding format:
+**Encoding Normalization**:
+- Normalize CLI encoding names to rust-strings format:
   - "ascii" → "ascii"
   - "utf8" or "utf-8" → "utf-8"
   - "utf16le" or "utf-16le" → "utf-16le"
   - "utf16be" or "utf-16be" → "utf-16be"
 
-### 4. String Filtering Module (`string_filter.py`)
-**Purpose**: Apply regex filtering to extracted strings
+### 4. Filtering Module (`filters.py`)
+**Purpose**: Apply length and regex filtering to extracted strings
 
 **Key Functions**:
-- `filter_strings(strings: List[Tuple[str, int]], pattern: Optional[str]) -> List[Tuple[str, int]]`
+- `filter_strings(strings: List[Tuple[str, int]], max_length: int, pattern: Optional[str]) -> List[Tuple[str, int]]`
+  - Filter by maximum length (post-processing since rust_strings doesn't support it)
   - If pattern provided, compile regex and filter matches
   - Handle invalid regex patterns with user-friendly error messages
   - Return filtered results
@@ -115,7 +118,10 @@ rust-strings [options] [glob] [glob...]
 def main(
     globs: List[str] = typer.Argument(None),
     abs_path: bool = typer.Option(False, "-a", "--abs-path"),
-    encodings: str = typer.Option("ascii,utf8", "-e", "--encodings"),
+    encodings: List[str] = typer.Option(
+        ["ascii", "utf-8"], "-e", "--encoding",
+        help="Encoding to consider (can be repeated)"
+    ),
     min_length: int = typer.Option(3, "-m", "--min"),
     max_length: int = typer.Option(256, "-M", "--max"),
     output_file: Optional[Path] = typer.Option(None, "-o", "--output"),
@@ -125,6 +131,7 @@ def main(
     no_hidden: bool = typer.Option(False, "-H", "--no-hidden")
 ):
     # Implementation logic
+    # Note: encodings is now a List[str] with repeated option support
 ```
 
 ## Error Handling Strategy
@@ -133,7 +140,7 @@ def main(
 1. **No files found**: "No files matching the specified patterns were found."
 2. **Invalid regex**: "Invalid filter pattern: {error_message}"
 3. **Permission denied**: "Cannot access file: {file_path} (Permission denied)"
-4. **Invalid encoding**: "Unsupported encoding: {encoding}. Supported: ascii, utf8, utf16le, utf16be"
+4. **Invalid encoding**: "Unsupported encoding: {encoding}. Supported: ascii, utf-8, utf-16le, utf-16be"
 5. **Output file exists**: "Output file exists. Use -y/--yes to overwrite."
 
 ### Exit Codes
@@ -154,9 +161,10 @@ def main(
 2. **test_string_extractor.py**
    - Mock rust_strings.strings calls
    - Test encoding handling
-   - Test length filtering
+   - Test exception handling (StringsException, EncodingNotFoundException)
 
-3. **test_string_filter.py**
+3. **test_filters.py**
+   - Test max length filtering
    - Test regex filtering
    - Test invalid pattern handling
 
@@ -194,9 +202,9 @@ def main(
 
 ## Dependencies Summary
 - **rust-strings**: Core string extraction functionality
-- **typer[all]**: CLI framework with rich support
-- **rich**: Table formatting and progress display
+- **typer[all]**: CLI framework with Rich support included
 - **Python stdlib**: glob, re, json, pathlib
+- **Note**: Python 3.8+ required (PDM requires 3.8+ for development)
 
 ## Development Workflow
 
@@ -239,7 +247,10 @@ def main(
 rust-strings "*.py"
 
 # Recursive search with UTF-16 encoding
-rust-strings "**/*.exe" -e utf16le
+rust-strings "**/*.exe" -e utf-16le
+
+# Multiple encodings (repeated option)
+rust-strings "**/*.exe" -e ascii -e utf-16le -e utf-8
 
 # Filter for URLs and save to JSON
 rust-strings "**/*.bin" -f "https?://[^\s]+" -t json -o urls.json
