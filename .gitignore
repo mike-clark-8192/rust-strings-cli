@@ -62,3 +62,5 @@ dmypy.json
 # local files
 *.local.json
 *.local.md
+
+sample-bins/

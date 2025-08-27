@@ -35,7 +35,6 @@ Globbing is done via [glob.glob](https://docs.python.org/3/library/glob.html#glo
   -y, --yes                    Overwrite output file if it exists.
   -f, --filter <regex>         Only strings matching this regex will be reported
   -t, --output-type <type>     One of `text`, `json`, `table`, or `rich-table` (default: text)
-  -H, --no-hidden              Exclude hidden directories and files (e.g., dotfiles).
 ```
 
 ### Output formats

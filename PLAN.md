@@ -29,7 +29,6 @@ rust-strings [options] [glob] [glob...]
 - `-y, --yes`: Overwrite existing output file
 - `-f, --filter`: Regex pattern to filter strings
 - `-t, --output-type`: Output format (text/json/table/rich-table, default: text)
-- `-H, --no-hidden`: Exclude hidden files and directories
 
 ## Implementation Modules
 
@@ -37,11 +36,9 @@ rust-strings [options] [glob] [glob...]
 **Purpose**: Handle file pattern matching and filtering
 
 **Key Functions**:
-- `find_files(patterns: List[str], exclude_hidden: bool) -> List[Path]`
+- `find_files(patterns: List[str]) -> List[Path]`
   - Use `glob.glob` with `recursive=True` for `**` patterns
-  - Filter hidden files/directories if `--no-hidden` is set
   - Return sorted list of absolute paths
-  - Handle Windows and Unix hidden file conventions
 
 **Edge Cases**:
 - Empty pattern list
@@ -128,7 +125,6 @@ def main(
     yes: bool = typer.Option(False, "-y", "--yes"),
     filter_pattern: Optional[str] = typer.Option(None, "-f", "--filter"),
     output_type: str = typer.Option("text", "-t", "--output-type"),
-    no_hidden: bool = typer.Option(False, "-H", "--no-hidden")
 ):
     # Implementation logic
     # Note: encodings is now a List[str] with repeated option support
@@ -155,7 +151,6 @@ def main(
 ### Unit Tests (`tests/`)
 1. **test_file_discovery.py**
    - Test glob pattern matching
-   - Test hidden file filtering
    - Test error handling
 
 2. **test_string_extractor.py**
@@ -255,9 +250,6 @@ rust-strings "**/*.exe" -e ascii -e utf-16le -e utf-8
 # Filter for URLs and save to JSON
 rust-strings "**/*.bin" -f "https?://[^\s]+" -t json -o urls.json
 
-# Search with multiple patterns, exclude hidden files
-rust-strings "*.dll" "*.exe" -H -m 10 -M 100
-
 # Rich table output with absolute paths
 rust-strings "/usr/bin/*" -a -t rich-table
 ```
@@ -266,7 +258,6 @@ rust-strings "/usr/bin/*" -a -t rich-table
 
 1. **Cross-platform Compatibility**
    - Handle path separators correctly
-   - Support both Windows and Unix hidden file conventions
    - Test on Windows, Linux, and macOS
 
 2. **Security Considerations**
