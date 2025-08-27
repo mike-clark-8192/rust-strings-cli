@@ -199,7 +199,7 @@ def main(
 - **rust-strings**: Core string extraction functionality
 - **typer[all]**: CLI framework with Rich support included
 - **Python stdlib**: glob, re, json, pathlib
-- **Note**: Python 3.8+ required (PDM requires 3.8+ for development)
+- **Note**: Python 3.9+ required (PDM requires 3.9+ for development)
 
 ## Development Workflow
 
