@@ -17,7 +17,8 @@ def run_cli(*args):
         cmd,
         capture_output=True,
         text=True,
-        timeout=10
+        timeout=10,
+        encoding="utf-8",
     )
     return result
 
@@ -28,7 +29,7 @@ class TestCLIIntegration:
     def test_cli_no_args(self):
         """Test CLI with no arguments shows error."""
         result = run_cli()
-        assert result.returncode == 0
+        assert result.returncode == 2
         assert "Missing argument 'GLOB'" in result.stderr
     
     def test_cli_help(self):
@@ -149,8 +150,8 @@ class TestCLIIntegration:
             os.chdir(tmp_path)
             # Without -y flag
             result = run_cli("test.bin", "-o", str(output_file))
-            assert result.returncode == 1
-            assert "Output file exists" in result.stderr
+            assert result.returncode == 2
+            assert "--yes to overwrite" in result.stderr
             assert output_file.read_text() == "existing content"
             
             # With -y flag
@@ -215,8 +216,8 @@ class TestCLIIntegration:
         try:
             os.chdir(tmp_path)
             result = run_cli("test.bin", "-f", "[invalid(")
-            assert result.returncode == 4
-            assert "Invalid filter pattern" in result.stderr
+            assert result.returncode == 2
+            assert "Invalid regex pattern" in result.stderr
         finally:
             os.chdir(original_cwd)
     

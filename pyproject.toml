@@ -41,11 +41,12 @@ rust-strings = "rust_strings_cli.cli_main:app"
 [tool.pdm.version]
 source = "scm"
 
-[tool.pdm.dev-dependencies]
+
+[dependency-groups]
 dev = [
     "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
     "black>=23.0.0",
     "ruff>=0.0.260",
     "mypy>=1.0.0",
 ]
+

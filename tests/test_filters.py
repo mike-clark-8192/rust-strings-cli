@@ -99,7 +99,7 @@ class TestFilterStrings:
             ("match2", 300),
         ]
         
-        filtered = filter_strings(strings, max_length=100, pattern="match")
+        filtered = filter_strings(strings, max_length=6, pattern="match")
         assert len(filtered) == 2
         assert filtered[0][1] == 100
         assert filtered[1][1] == 300

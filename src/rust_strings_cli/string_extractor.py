@@ -78,4 +78,4 @@ def _normalize_encoding(encoding: str) -> str:
         'utf-16be': 'utf-16be',
     }
     
-    return encoding_map.get(encoding_lower, encoding)
+    return encoding_map.get(encoding_lower, encoding_lower)

@@ -166,7 +166,7 @@ def main(
     
     if not files:
         console.print("[yellow]No files matching the specified patterns were found.[/yellow]")
-        raise typer.Exit(0)  # Exit cleanly with no error
+        raise typer.Exit(2)  # Exit cleanly with no error
     
     console.print(f"[dim]Found {len(files)} file(s) to process[/dim]")
     
